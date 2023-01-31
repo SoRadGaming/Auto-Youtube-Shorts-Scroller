@@ -1,0 +1,12 @@
+{
+  "name": "youtube_auto_scroller",
+  "version": "1.0.0",
+  "description": "Automatically scrolls down the youtube page to load more videos",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@types/firefox-webext-browser": "^78.0.0"
+  }
+}
