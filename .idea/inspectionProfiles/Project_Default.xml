@@ -6,10 +6,21 @@
         <language minSize="47" name="JavaScript" />
       </Languages>
     </inspection_tool>
+    <inspection_tool class="HtmlUnknownAttribute" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myValues">
+        <value>
+          <list size="2">
+            <item index="0" class="java.lang.String" itemvalue="0.5rem" />
+            <item index="1" class="java.lang.String" itemvalue="margin-bottom:" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="8">
+          <list size="10">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -18,6 +29,8 @@
             <item index="5" class="java.lang.String" itemvalue="script" />
             <item index="6" class="java.lang.String" itemvalue="hr" />
             <item index="7" class="java.lang.String" itemvalue="p" />
+            <item index="8" class="java.lang.String" itemvalue="pagebuttons" />
+            <item index="9" class="java.lang.String" itemvalue="inputbox" />
           </list>
         </value>
       </option>

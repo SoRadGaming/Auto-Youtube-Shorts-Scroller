@@ -1,13 +1,9 @@
 Auto-Youtube-Shorts-Scroller for Firefox
 ============================
 ### THIS IS A FORK OF (https://github.com/Tyson3101/Auto-Youtube-Shorts-Scroller/)
+### I DID NOT MAKE THIS EXTENSION, I JUST MADE IT WORK ON FIREFOX
 
-### TODO:
-1. [ ] Fix Popup HTML (Add CSS)
-2. [ ] Fix Popup 5-Page Tabs
-3. [ ] Fully Test all Plugin Features
-
-Once all above are complete I will release the plugin to the Firefox Addons Store for now download the zip from the releases page and install it manually.
+### Available on the [Firefox Add-ons Store](https://addons.mozilla.org/en-US/firefox/addon/auto-youtube-shorts-scroller/)
 
 ### How To Install
 - Download the zip from the [releases](https://github.com/SoRadGaming/Auto-Youtube-Shorts-Scroller/releases) page

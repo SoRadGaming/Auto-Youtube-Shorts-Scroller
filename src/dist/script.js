@@ -41,12 +41,12 @@ nextSettings.onclick = () => {
     const settingPage = document.querySelectorAll(".settingsPage");
     const active = [...settingPage].find((page) => page.classList.contains("active"));
     const next = (() => {
-        const nextIndex = parseInt(active.dataset["setting-index"]) + 1;
+        const nextIndex = parseInt(active.dataset["settingindex"]) + 1;
         if (nextIndex >= settingPage.length)
             return settingPage[0];
         return settingPage[nextIndex];
     })();
-    pageNumber.innerText = `${parseInt(next.dataset["setting-index"]) + 1}/${settingPage.length}`;
+    pageNumber.innerText = `${parseInt(next.dataset["settingindex"]) + 1}/${settingPage.length}`;
     active.classList.remove("active");
     next.classList.add("active");
 };
@@ -54,14 +54,14 @@ backSettings.onclick = () => {
     const settingPage = document.querySelectorAll(".settingsPage");
     const active = [...settingPage].find((page) => page.classList.contains("active"));
     const last = (() => {
-        const lastIndex = parseInt(active.dataset["setting-index"]) - 1;
+        const lastIndex = parseInt(active.dataset["settingindex"]) - 1;
         console.log({ lastIndex });
         if (lastIndex < 0) {
             pageNumber.innerText = `5/${settingPage.length}`;
             return settingPage[settingPage.length - 1];
         }
         else {
-            pageNumber.innerText = `${parseInt(active.dataset["setting-index"])}/${settingPage.length}`;
+            pageNumber.innerText = `${parseInt(active.dataset["settingindex"])}/${settingPage.length}`;
             return settingPage[lastIndex];
         }
     })();
