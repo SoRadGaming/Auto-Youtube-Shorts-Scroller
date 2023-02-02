@@ -3,7 +3,7 @@
   "name": "Auto Youtube Shorts Scroller",
   "description": "Auto Youtube Shorts Scroller is a helpful tool that automatically scrolls to the next YT Short when one ends.",
   "author": "SoRadGaming",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*"],
