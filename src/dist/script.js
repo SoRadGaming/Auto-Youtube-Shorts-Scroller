@@ -114,9 +114,9 @@ function getAllSettingsForPopup() {
         let value = result["filteredAuthors"];
         if (value === undefined) {
             await browser.storage.local.set({
-                filteredAuthors: ["SoRadGaming"],
+                filteredAuthors: ["Channel_1", "Channel_2"],
             });
-            value = ["SoRadGaming"];
+            value = ["Channel_1", "Channel_2"];
         }
         filteredAuthors.value = value.join(",");
     });
