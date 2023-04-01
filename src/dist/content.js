@@ -144,10 +144,8 @@ function checkIfValidVideo() {
     }
     // Check if the video is from a blocked creator and if it is, skip it (FROM SETTINGS)
     const authorOfVideo = currentVideoParent
-        ?.querySelector(".ytd-channel-name")
-        ?.querySelector("a")
-        .innerText?.toLowerCase()
-        .replace("@", "");
+        ?.querySelector(".ytd-channel-name a")?.getAttribute("href")
+        ?.toLowerCase()?.replace("/@", "");
     if (authorOfVideo &&
         blockedCreators
             .map((c) => c.toLowerCase().replace("@", ""))
