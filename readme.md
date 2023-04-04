@@ -5,6 +5,13 @@ Auto-Youtube-Shorts-Scroller for Firefox
 
 ### Available on the [Firefox Add-ons Store](https://addons.mozilla.org/en-US/firefox/addon/auto-youtube-shorts-scroller/)
 
+### Chrome Extention
+
+For Chromium Browsers, you can find the original extension by [Tyson3101](https://github.com/Tyson3101). <br/>
+The download for the original add-on can be found [on their repository.](https://github.com/Tyson3101/Auto-Youtube-Shorts-Scroller/)
+
+## For Developers
+
 ### How To Install
 - Download the zip from the [releases](https://github.com/SoRadGaming/Auto-Youtube-Shorts-Scroller/releases) page
 - In Firefox go to `about:debugging#/runtime/this-firefox`
