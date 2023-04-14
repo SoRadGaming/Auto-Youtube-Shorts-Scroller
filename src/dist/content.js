@@ -4,6 +4,10 @@ const NEXT_VIDEO_BUTTON_SELECTOR = "#navigation-button-down > ytd-button-rendere
 const LIKE_BUTTON_SELECTOR = "ytd-reel-video-renderer[is-active] #like-button > yt-button-shape > label > button";
 const DISLIKE_BUTTON_SELECTOR = "ytd-reel-video-renderer[is-active] #dislike-button > yt-button-shape > label > button";
 const COMMENTS_SELECTOR = "body > ytd-app > ytd-popup-container > tp-yt-paper-dialog > ytd-engagement-panel-section-list-renderer > div";
+const COMMENTS_CLOSE_BUTTON_SELECTOR = "#visibility-button > ytd-button-renderer > yt-button-shape > button > yt-touch-feedback-shape > div > div.yt-spec-touch-feedback-shape__fill";
+const LIKES_COUNT_SELECTOR = "ytd-reel-video-renderer[is-active] #factoids > ytd-factoid-renderer:nth-child(1) > div > yt-formatted-string.factoid-value.style-scope.ytd-factoid-renderer";
+const VIEW_COUNT_SELECTOR = "ytd-reel-video-renderer[is-active] #factoids > ytd-factoid-renderer:nth-child(2) > div > yt-formatted-string.factoid-value.style-scope.ytd-factoid-renderer";
+const COMMENTS_COUNT_SELECTOR = "ytd-reel-video-renderer[is-active] #comments-button > ytd-button-renderer > yt-button-shape > label > div > span";
 // APP VARIABLES
 let shortCutToggleKeys = [];
 let shortCutInteractKeys = [];
@@ -12,6 +16,12 @@ let amountOfPlays = 0;
 let amountOfPlaysToSkip = 1;
 let filterMinLength = "none";
 let filterMaxLength = "none";
+let filterMinViews = "none";
+let filterMaxViews = "none";
+let filterMinLikes = "none";
+let filterMaxLikes = "none";
+let filterMinComments = "none";
+let filterMaxComments = "none";
 let blockedCreators = [];
 // STATE VARIABLES
 let currentVideoIndex = null;
@@ -90,7 +100,7 @@ async function videoFinished() {
                 return;
             } else {
                 // If the comments are open and the user wants to scroll on comments, close the comments
-                const closeCommentsButton = document.querySelector("#visibility-button > ytd-button-renderer > yt-button-shape > button > yt-touch-feedback-shape > div > div.yt-spec-touch-feedback-shape__fill");
+                const closeCommentsButton = document.querySelector(COMMENTS_CLOSE_BUTTON_SELECTOR);
                 if (closeCommentsButton)
                     closeCommentsButton.click();
             }
@@ -120,12 +130,7 @@ async function scrollToNextShort() {
             inline: "center",
         });
     } else {
-        const nextButton = document.querySelector(NEXT_VIDEO_BUTTON_SELECTOR);
-        if (nextButton) {
-            nextButton.click();
-        } else {
-            currentVideo?.setAttribute("loop", "");
-        }
+        currentVideo?.play();
     }
     setTimeout(() => {
         // Hardcoded timeout to make sure the video is scrolled before other scrolls are allowed
@@ -152,10 +157,59 @@ function checkIfValidVideo() {
             .includes(authorOfVideo)) {
         return false;
     }
-    // Check if the video is within the length filter (FROM SETTINGS)
+    // Check if the video is within the filters (FROM SETTINGS)
     if (filterMaxLength !== "none" || filterMinLength !== "none") {
         if (currentVideo.duration < parseInt(filterMinLength) ||
             currentVideo.duration > parseInt(filterMaxLength)) {
+            return false;
+        }
+    }
+    if (filterMinViews !== "none" || filterMaxViews !== "none") {
+        const viewCountInnerText = document.querySelector(VIEW_COUNT_SELECTOR)?.innerText;
+        if (viewCountInnerText) {
+            const viewCount = parseInt(viewCountInnerText.replaceAll(",", ""));
+            if (viewCount < parseInt(filterMinViews) ||
+                viewCount > parseInt(filterMaxViews)) {
+                return false;
+            }
+        }
+    }
+    if (filterMinLikes !== "none" || filterMaxLikes !== "none") {
+        const likeCountInnerText = document.querySelector(LIKES_COUNT_SELECTOR)?.innerText?.toLowerCase();
+        if (likeCountInnerText) {
+            let likeCount = parseFloat(likeCountInnerText);
+            if (likeCountInnerText.endsWith("k")) {
+                likeCount *= 1000;
+            } else if (likeCountInnerText.endsWith("m")) {
+                likeCount *= 1000000;
+            } else if (likeCountInnerText.endsWith("b")) {
+                likeCount *= 1000000000;
+            } else if (likeCountInnerText.includes("n/a") &&
+                filterMinLikes !== "none") {
+                return false;
+            }
+            if (likeCount < parseInt(filterMinLikes) ||
+                likeCount > parseInt(filterMaxLikes)) {
+                return false;
+            }
+        }
+    }
+    if (filterMinComments !== "none" || filterMaxComments !== "none") {
+        const commentsCountInnerText = document.querySelector(COMMENTS_COUNT_SELECTOR)?.innerText?.toLowerCase();
+        if (commentsCountInnerText) {
+            let commentsCount = parseFloat(commentsCountInnerText);
+            if (commentsCountInnerText.endsWith("k")) {
+                commentsCount *= 1000;
+            } else if (commentsCountInnerText.endsWith("m")) {
+                commentsCount *= 1000000;
+            } else if (commentsCountInnerText.endsWith("b")) {
+                commentsCount *= 1000000000;
+            }
+            if (commentsCount < parseInt(filterMinComments) ||
+                commentsCount > parseInt(filterMaxComments)) {
+                return false;
+            }
+        } else if (filterMinComments !== "none") {
             return false;
         }
     }
@@ -179,17 +233,24 @@ function getParentVideo() {
         if (result["applicationIsOn"] == null) {
             return startAutoScrolling();
         }
-        if (result["applicationIsOn"])
+        if (result["applicationIsOn"]) {
             await startAutoScrolling();
+        }
     });
     setInterval(checkForNewShort, 100);
     (function getAllSettings() {
-        browser.storage.local.get([
+        browser.storage.sync.get([
             "shortCutKeys",
             "shortCutInteractKeys",
             "amountOfPlaysToSkip",
             "filterByMinLength",
             "filterByMaxLength",
+            "filterByMinViews",
+            "filterByMaxViews",
+            "filterByMinLikes",
+            "filterByMaxLikes",
+            "filterByMinComments",
+            "filterByMaxComments",
             "filteredAuthors",
             "scrollOnComments",
         ]).then((result) => {
@@ -205,6 +266,18 @@ function getParentVideo() {
                 filterMinLength = result["filterByMinLength"];
             if (result["filterByMaxLength"])
                 filterMaxLength = result["filterByMaxLength"];
+            if (result["filterByMinViews"])
+                filterMinViews = result["filterByMinViews"];
+            if (result["filterByMaxViews"])
+                filterMaxViews = result["filterByMaxViews"];
+            if (result["filterByMinLikes"])
+                filterMinLikes = result["filterByMinLikes"];
+            if (result["filterByMaxLikes"])
+                filterMaxLikes = result["filterByMaxLikes"];
+            if (result["filterByMinComments"])
+                filterMinComments = result["filterByMinComments"];
+            if (result["filterByMaxComments"])
+                filterMaxComments = result["filterByMaxComments"];
             if (result["filteredAuthors"])
                 blockedCreators = [...result["filteredAuthors"]];
             shortCutListener();
@@ -233,6 +306,30 @@ function getParentVideo() {
             let newFilterMaxLength = result["filterByMaxLength"]?.newValue;
             if (newFilterMaxLength !== undefined) {
                 filterMaxLength = newFilterMaxLength;
+            }
+            let newFilterMinViews = result["filterByMinViews"]?.newValue;
+            if (newFilterMinViews !== undefined) {
+                filterMinViews = newFilterMinViews;
+            }
+            let newFilterMaxViews = result["filterByMaxViews"]?.newValue;
+            if (newFilterMaxViews !== undefined) {
+                filterMaxViews = newFilterMaxViews;
+            }
+            let newFilterMinLikes = result["filterByMinLikes"]?.newValue;
+            if (newFilterMinLikes !== undefined) {
+                filterMinLikes = newFilterMinLikes;
+            }
+            let newFilterMaxLikes = result["filterByMaxLikes"]?.newValue;
+            if (newFilterMaxLikes !== undefined) {
+                filterMaxLikes = newFilterMaxLikes;
+            }
+            let newFilterMinComments = result["filterByMinComments"]?.newValue;
+            if (newFilterMinComments !== undefined) {
+                filterMinComments = newFilterMinComments;
+            }
+            let newFilterMaxComments = result["filterByMaxComments"]?.newValue;
+            if (newFilterMaxComments !== undefined) {
+                filterMaxComments = newFilterMaxComments;
             }
             let newBlockedCreators = result["filteredAuthors"]?.newValue;
             if (newBlockedCreators !== undefined) {

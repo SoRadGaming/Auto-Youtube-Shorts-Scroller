@@ -94,7 +94,19 @@
     bottom: 3px;
     color: white;
   }
-  #pageNumber {
+  #backFilter {
+    position: absolute;
+    left: 3px;
+    bottom: 3px;
+    color: white;
+  }
+  #nextFilter {
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    color: white;
+  }
+  .pageNumber {
     position: absolute;
     bottom: 0;
     margin: auto;
@@ -143,16 +155,45 @@
     border-color: rgb(128, 128, 128);
     padding: 0.2em;
   }
+  .filterOptions:not(.active) * {
+    display: none;
+  }
+  .settings input[type="number"] {
+    width: 15vw;
+  }
+  .settings.remove {
+    display: none;
+  }
+  .settings > .settings.small {
+    height: 10rem;
+  }
+  .settings.small {
+    height: 4.8rem;
+    width: 80vw;
+  }
+  .pageList {
+    display: block;
+    margin-top: 5px;
+    margin-bottom: 0;
+  }
+  .pageList * {
+    display: inline-block;
+    margin-right: 11px;
+    text-decoration: none;
+  }
+  .pageList .active {
+    text-decoration: underline;
+    font-weight: 500;
+  }
 </style>
 <body>
-<h1>Auto YouTube Shorts Scroller Extension</h1>
+<h1>YouTube Shorts Scroller</h1>
 
 <button class="toggleBtn">Stop</button>
 <i id="error" style="color: red; display: block"></i>
 
 <div class="settings">
-  <h2>Settings</h2>
-  <div data-settingIndex="0" class="settingsPage active">
+  <div data-pageIndex="0" class="settingsPage active">
     <label for="shortCutInput" style="padding: 0.5rem">
       <p style="font-size: 1rem">
       Toggle Shortcut
@@ -167,36 +208,129 @@
     </p>
   </div>
 
-  <div data-settingIndex="1" class="settingsPage">
+  <div data-pageIndex="1" class="settingsPage">
     <label>
       <p style="font-size: 1rem">
       Filter Shorts
-      <i style="font-size: 0.7em; display: block; margin-bottom: 0.5rem">Auto skips videos by length <br/></i>
+        <i style="font-size: 0.7em; display: block; margin-bottom: 3px"
+        >Auto skips videos by length/likes/views/comments</i
+        >
       </p>
     </label>
-    <div class="filterOptions">
-      <div>
-        <label for="filterByMinLength">Minimum length: </label>
-        <select name="filterByMinLength" id="filterByMinLength" style="background: rgb(64, 64, 64);border-color: rgb(128, 128, 128);color: white;">
-          <option value="none">None</option>
-          <option value="15">15 Seconds</option>
-          <option value="30">30 Seconds</option>
-          <option value="45">45 Seconds</option>
-        </select>
-      </div>
-      <div>
-        <label for="filterByMaxLength">Maximum length: </label>
-        <select name="filterByMaxLength" id="filterByMaxLength" style="background: rgb(64, 64, 64);border-color: rgb(128, 128, 128);color: white;">
-          <option value="none">None</option>
-          <option value="15">15 Seconds</option>
-          <option value="30">30 Seconds</option>
-          <option value="45">45 Seconds</option>
-        </select>
+    <div class="filterShorts">
+      <div class="settings small">
+        <div data-pageIndex="0" class="filterPage filterOptions active">
+          <h3>Short Length</h3>
+          <div>
+            <label for="filterByMinLength">Minimum length: </label>
+            <select name="filterByMinLength" id="filterByMinLength">
+              <option value="none">None</option>
+              <option value="15">15 Seconds</option>
+              <option value="30">30 Seconds</option>
+              <option value="45">45 Seconds</option>
+            </select>
+          </div>
+          <div>
+            <label for="filterByMaxLength">Maximum length: </label>
+            <select name="filterByMaxLength" id="filterByMaxLength">
+              <option value="none">None</option>
+              <option value="15">15 Seconds</option>
+              <option value="30">30 Seconds</option>
+              <option value="45">45 Seconds</option>
+            </select>
+          </div>
+        </div>
+        <div data-pageIndex="1" class="filterPage filterOptions">
+          <h3>Views</h3>
+          <div>
+            <label for="filterByMinViews">Minimum views: </label>
+            <input
+                    style="display: inline"
+                    type="number"
+                    name="filterByMinViews"
+                    id="filterByMinViews"
+                    placeholder="No Filter"
+                    step="1000"
+                    min="0"
+            />
+          </div>
+          <div>
+            <label for="filterByMaxViews">Maximum views: </label>
+            <input
+                    style="display: inline"
+                    type="number"
+                    name="filterByMaxViews"
+                    id="filterByMaxViews"
+                    placeholder="No Filter"
+                    step="1000"
+                    min="0"
+            />
+          </div>
+        </div>
+
+        <div data-pageIndex="2" class="filterPage filterOptions">
+          <h3>Likes</h3>
+          <div>
+            <label for="filterByMinLikes">Minimum likes: </label>
+            <input
+                    style="display: inline"
+                    type="number"
+                    name="filterByMinLikes"
+                    id="filterByMinLikes"
+                    placeholder="No Filter"
+                    step="100"
+                    min="0"
+            />
+          </div>
+          <div>
+            <label for="filterByMaxLikes">Maximum likes: </label>
+            <input
+                    style="display: inline"
+                    type="number"
+                    name="filterByMaxLikes"
+                    id="filterByMaxLikes"
+                    placeholder="No Filter"
+                    step="100"
+                    min="0"
+            />
+          </div>
+        </div>
+
+        <div data-pageIndex="3" class="filterPage filterOptions">
+          <h3>Comments</h3>
+          <div>
+            <label for="filterByMinComments">Minimum comments: </label>
+            <input
+                    style="display: inline"
+                    type="number"
+                    name="filterByMinComments"
+                    id="filterByMinComments"
+                    placeholder="No Filter"
+                    step="50"
+                    min="0"
+            />
+          </div>
+          <div>
+            <label for="filterByMaxComments">Maximum comments: </label>
+            <input
+                    style="display: inline"
+                    type="number"
+                    name="filterByMaxComments"
+                    id="filterByMaxComments"
+                    placeholder="No Filter"
+                    step="50"
+                    min="0"
+            />
+          </div>
+        </div>
+        <button id="backFilter" class="back"><a href="#"><</a></button>
+        <div id="filterPageNumber" class="pageNumber">1/4</div>
+        <button id="nextFilter" class="next"><a href="#">></a></button>
       </div>
     </div>
   </div>
 
-  <div data-settingIndex="2" class="settingsPage">
+  <div data-pageIndex="2" class="settingsPage">
     <label>
       <p style="font-size: 1rem">
         Amount of Plays
@@ -220,7 +354,7 @@
     </label>
   </div>
 
-  <div data-settingIndex="3" class="settingsPage">
+  <div data-pageIndex="3" class="settingsPage">
     <label for="shortCutInteractInput" style="padding: 0.5rem">
       <p style="font-size: 1rem">
         Like/Dislike Shortcut
@@ -244,7 +378,7 @@
     </p>
   </div>
 
-  <div data-settingIndex="4" class="settingsPage list">
+  <div data-pageIndex="4" class="settingsPage list">
     <label for="filterAuthors">
       <p style="font-size: 1rem; padding-top: 0.5rem">
         Block Video Creators
@@ -256,9 +390,9 @@
     </label>
     <textarea id="filterAuthors" class="urlsList"></textarea>
   </div>
-  <button class="pageButtons" id="backSettings">Last Page</button>
-  <div id="pageNumber">1/5</div>
-  <button class="pageButtons" id="nextSettings">Next Page</button>
+  <button id="backSettings" class="back">Last Page</button>
+  <div id="settingsPageNumber" class="pageNumber">1/5</div>
+  <button id="nextSettings" class="next">Next Page</button>
 </div>
 
 <h4 style="margin: 0.5rem">
