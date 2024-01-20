@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
+<style>
+  :root {
+    --bg-color: #121212;
+  }
+  * {
+    text-align: center;
+  }
+  body {
+    max-width: 320px;
+    background-color: var(--bg-color);
+    color: white;
+  }
+  h1 {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    padding-right: 4vw;
+    padding-left: 4vw;
+    color: white;
+  }
+  button {
+    cursor: pointer;
+    background: rgb(64, 64, 64);
+    border-color: rgb(128, 128, 128);
+  }
+  .toggleBtn {
+    height: 3rem;
+    width: 10rem;
+    font-size: 1.5rem;
+    border-radius: 0.5rem;
+    color: white;
+  }
+  .start {
+    background-color: rgb(157, 231, 157);
+  }
+  .stop {
+    background-color: rgb(243, 139, 139);
+  }
+  .start:hover {
+    background-color: rgb(135, 196, 135);
+  }
+  .stop:hover {
+    background-color: rgb(205, 119, 119);
+  }
+  .remove {
+    display: none;
+  }
+  .settings {
+    margin-top: 0.5rem;
+    padding: 0 0.5em 0.5em 0.5em;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+    box-shadow: 0 0 0.1rem 0.1rem #5b5b5b;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    height: 10rem;
+  }
+  .settings h2 {
+    text-decoration: underline;
+  }
+  .settings * {
+    margin: 0;
+  }
+  .settings label {
+    font-weight: bold;
+  }
+  .settings select {
+    margin-bottom: 0.2rem;
+  }
+  #nextSettings {
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    color: white;
+  }
+  #backSettings {
+    position: absolute;
+    left: 3px;
+    bottom: 3px;
+    color: white;
+  }
+  #backFilter {
+    position: absolute;
+    left: 3px;
+    bottom: 3px;
+    color: white;
+  }
+  #nextFilter {
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    color: white;
+  }
+  .pageNumber {
+    position: absolute;
+    bottom: 0;
+    margin: auto;
+    color: white;
+  }
+  .settingsPage {
+    display: none;
+  }
+  .settingsPage.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+  }
+  .settings.select {
+    height: min-content;
+  }
+  .settingsPage.list.active {
+    display: block;
+    top: 0;
+  }
+  .filterOptions {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+  }
+  .filterOptions > div {
+    display: flex;
+    justify-content: space-around;
+  }
+  .filterOptions > div * {
+    display: block;
+    min-width: 40vw;
+  }
+  textarea.urlsList {
+    width: 90%;
+    text-align: left;
+    height: 12vh;
+    resize: none;
+    box-shadow: 0 0 0.1rem 0.1rem #5b5b5b;
+    background: rgb(64, 64, 64);
+    color: white;
+    border-color: rgb(128, 128, 128);
+    padding: 0.2em;
+  }
+  .filterOptions:not(.active) * {
+    display: none;
+  }
+  .settings input[type="number"] {
+    width: 15vw;
+  }
+  .settings.remove {
+    display: none;
+  }
+  .settings > .settings.small {
+    height: 10rem;
+  }
+  .settings.small {
+    height: 5.6rem;
+    width: 80vw;
+  }
+  .pageList {
+    display: block;
+    padding: 1rem;
+    background-color: rgb(64, 64, 64);
+    color: white;
+    border-color: rgb(128, 128, 128);
+    margin-top: 1rem;
+    box-shadow: 0 0 0.1rem 0.1rem #5b5b5b;
+  }
+  .pageList h2 {
+    text-align: center;
+    text-decoration: underline;
+  }
+  .pageList ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .pageList li {
+    margin-bottom: 0.5rem;
+  }
+  .pageList a {
+    text-decoration: none;
+    color: white;
+  }
+  .pageList a:hover {
+    text-decoration: underline;
+  }
+  #backPageList {
+    position: absolute;
+    left: 3px;
+    bottom: 3px;
+    color: white;
+  }
+  .settingsPage.pageList.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    top: -10px;
+  }
+  .pageList small {
+    font-size: 0.8rem;
+  }
+</style>
+<body>
+  <h1>YouTube Shorts Scroller</h1>
+    <button class="toggleBtn">Stop</button>
+    <i id="error" style="color: red; display: block"></i>
+
+
+    <div class="settings">
+      <div data-pageIndex="0" class="settingsPage active" style="margin-bottom: 16px">
+        <label for="shortCutInput" style="padding: 0.5rem">
+          <p style="font-size: 1rem">
+            Toggle Shortcut
+            <i style="font-size: 0.7em; display: block">(Separate with +)</i>
+          </p>
+        </label>
+        <input type="text" name="shortCutInput" id="shortCutInput" value="shift + s" style="width: 40%; background: rgb(64, 64, 64);border-color: rgb(128, 128, 128);color: white;"/>
+        <p style="padding: 0.5rem">
+          See
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values" style="color: #f1c40f; text-decoration: underline">here</a>
+          to find the key you want to use
+        </p>
+      </div>
+
+      <div data-pageIndex="1" class="settingsPage">
+        <label><p style="font-size: 0.8rem; margin-bottom: 5px; margin-top: -24px">Filter Shorts</p></label>
+        <div class="filterShorts">
+          <div class="settings small">
+            <div data-pageIndex="0" class="filterPage filterOptions active">
+              <h4 style="margin-bottom: 4px" >Short Length</h4>
+              <div style="">
+                <label for="filterByMinLength">Minimum length: </label>
+                <select name="filterByMinLength" id="filterByMinLength" style="width: 10px">
+                  <option value="none">None</option>
+                  <option value="15">15 Seconds</option>
+                  <option value="30">30 Seconds</option>
+                  <option value="45">45 Seconds</option>
+                </select>
+              </div>
+              <div>
+                <label for="filterByMaxLength">Maximum length: </label>
+                <select name="filterByMaxLength" id="filterByMaxLength">
+                  <option value="none">None</option>
+                  <option value="15">15 Seconds</option>
+                  <option value="30">30 Seconds</option>
+                  <option value="45">45 Seconds</option>
+                </select>
+              </div>
+            </div>
+            <div data-pageIndex="1" class="filterPage filterOptions">
+              <h3>Views</h3>
+              <div>
+                <label for="filterByMinViews">Minimum views: </label>
+                <input
+                        style="display: inline"
+                        type="text"
+                        name="filterByMinViews"
+                        id="filterByMinViews"
+                        placeholder="No Filter"
+                        step="1000"
+                        min="0"
+                        title="Use underscores to format the number (e.g. 1_000_000)"
+                />
+              </div>
+              <div>
+                <label for="filterByMaxViews">Maximum views: </label>
+                <input
+                        style="display: inline"
+                        type="text"
+                        name="filterByMaxViews"
+                        id="filterByMaxViews"
+                        placeholder="No Filter"
+                        step="1000"
+                        min="0"
+                        title="Use underscores to format the number (e.g. 1_000_000)"
+                />
+              </div>
+            </div>
+
+
+            <div data-pageIndex="2" class="filterPage filterOptions">
+              <h3>Likes</h3>
+              <div>
+                <label for="filterByMinLikes">Minimum likes: </label>
+                <input
+                        style="display: inline"
+                        type="text"
+                        name="filterByMinLikes"
+                        id="filterByMinLikes"
+                        placeholder="No Filter"
+                        step="100"
+                        min="0"
+                        title="Use underscores to format the number (e.g. 1_000_000)"
+                />
+              </div>
+              <div>
+                <label for="filterByMaxLikes">Maximum likes: </label>
+                <input
+                        style="display: inline"
+                        type="text"
+                        name="filterByMaxLikes"
+                        id="filterByMaxLikes"
+                        placeholder="No Filter"
+                        step="100"
+                        min="0"
+                        title="Use underscores to format the number (e.g. 1_000_000)"
+                />
+              </div>
+            </div>
+
+            <div data-pageIndex="3" class="filterPage filterOptions">
+              <h3>Comments</h3>
+              <div>
+                <label for="filterByMinComments">Minimum comments: </label>
+                <input
+                        style="display: inline"
+                        type="text"
+                        name="filterByMinComments"
+                        id="filterByMinComments"
+                        placeholder="No Filter"
+                        step="50"
+                        min="0"
+                        title="Use underscores to format the number (e.g. 1_000_000)"
+                />
+              </div>
+              <div>
+                <label for="filterByMaxComments">Maximum comments: </label>
+                <input
+                        style="display: inline"
+                        type="text"
+                        name="filterByMaxComments"
+                        id="filterByMaxComments"
+                        placeholder="No Filter"
+                        step="50"
+                        min="0"
+                        title="Use underscores to format the number (e.g. 1_000_000)"
+                />
+              </div>
+            </div>
+
+            <button id="backFilter" class="back"><</button>
+            <div id="filterPageNumber" class="pageNumber">1/4</div>
+            <button id="nextFilter" class="next">></button>
+          </div>
+        </div>
+      </div>
+
+      <div data-pageIndex="2" class="settingsPage scrollSettings" style="margin-bottom: 15px">
+        <label><p style="font-size: 1rem">
+          Amount of Plays
+          <i style="font-size: 0.7em; display: block">
+            Auto-Scrolls to the next short after a specific amount of plays
+          </i>
+        </p></label>
+        <label for="amountOfPlaysInput"></label>
+        <input type="number" name="amountOfPlaysInput" id="amountOfPlaysInput" value="1" min="1"
+               style="width: 60%; background: rgb(64, 64, 64);border-color: rgb(128, 128, 128);color: white; margin-top: 10px "/>
+
+        <label for="scrollDirectionInput" style="margin-top: 0.1rem; margin-bottom: 0.1rem">
+          Direction of Scroll:
+          <select name="scrollDirection" id="scrollDirectionInput" style="background: rgb(64, 64, 64);border-color: rgb(128, 128, 128);color: white; margin-top: 10px">
+            <option value="down">Down</option>
+            <option value="up">Up</option>
+          </select>
+        </label>
+
+        <label for="scrollOnComments" style="margin-top: 0.25rem; margin-bottom: 0.25rem">
+          Scroll when the comments are open:
+          <input type="checkbox" name="scrollOnComments" id="scrollOnComments" checked="checked" style="color: rgb(128, 128, 128);"/>
+        </label>
+      </div>
+
+      <div data-pageIndex="3" class="settingsPage" style="margin-bottom: 16px">
+        <label for="shortCutInteractInput" style="padding: 0.5rem">
+          <p style="font-size: 1rem">
+            Like/Dislike Shortcut
+            <i style="font-size: 0.7em; display: block">(Separate with +)</i>
+          </p>
+        </label>
+        <input type="text" name="shortCutInteractInput" id="shortCutInteractInput" value="shift + f" style="width: 40%; background: rgb(64, 64, 64);border-color: rgb(128, 128, 128);color: white;"/>
+        <p style="padding: 0.5rem">
+          Double perform shortcut to dislike
+          <br/>
+          See
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values" style="color: #f1c40f; text-decoration: underline">here</a>
+          to find the key you want to use
+        </p>
+      </div>
+
+      <div data-pageIndex="4" class="settingsPage list scroll">
+        <label for="filterAuthors">
+          <p style="font-size: 1rem; padding-top: 0.5rem">
+            Block Video Creators
+            <i style="font-size: 0.7em; display: block; margin-bottom: 0.5rem">
+              Skips video by inputted creators (Separate by a comma)
+            </i>
+          </p>
+        </label>
+        <textarea id="filterAuthors" class="urlsList"></textarea>
+
+        <label for="filterTags" style="margin-top: 0.5rem; display: block">
+          <p style="font-size: 1rem; padding-top: 0.5rem">
+            Block Video Tags
+            <i style="font-size: 0.7em; display: block; margin-bottom: 0.5rem">
+              Skips video with inputted tags (separate by a comma)
+            </i>
+          </p>
+        </label>
+        <textarea id="filterTags" class="urlsList"></textarea>
+      </div>
+
+      <button id="backSettings" class="back">Last Page</button>
+      <div id="settingsPageNumber" class="pageNumber">1/5</div>
+      <button id="nextSettings" class="next">Next Page</button>
+
+    </div>
+    <div class="pageList">
+      <a href="#" data-pageIndex="0" class="active">Toggle Shortcut</a>
+      <a href="#" data-pageIndex="1">Filter Shorts</a>
+      <a href="#" data-pageIndex="2">Scroll Settings</a>
+      <a href="#" data-pageIndex="3">Like/Dislike Shortcut</a>
+      <a href="#" data-pageIndex="4">Block Creators/Tags</a>
+    </div>
+
+  <h4 style="margin: 0.5rem">
+    Do you enjoy this extension? Make sure to give it 5 stars on the
+    <a href="https://addons.mozilla.org/en-US/firefox/addon/auto-youtube-shorts-scroller/"
+       style="color: #f1c40f"
+    >FireFox Add-On Store!</a>
+  </h4>
+
+    <div>
+      <a aria-label="Github Page" target="_blank" style="
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 0;
+    transform: scale(0.6);
+    text-decoration: none;
+    display: inline;
+    color: inherit;" href="https://github.com/SoRadGaming/Auto-Youtube-Shorts-Scroller" class="github-corner">
+        <i style="font-size: 3rem" class="fa fa-github"></i>
+      </a>
+      <a aria-label="Github Page" target="_blank" style="
+        position: absolute;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(0.6);
+        text-decoration: none;
+        display: inline;
+        color: inherit;
+      " href="help.html" class="help-corner">
+        <i style="font-size: 3rem" class="fa fa-question-circle" aria-hidden="true"></i>
+      </a>
+    </div>
+
+    <script src="../dist/script.js"></script>
+  </body>
+</html>
