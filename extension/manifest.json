@@ -1,32 +1,28 @@
 {
-  "manifest_version": 2,
-  "name": "Auto Youtube Shorts Scroller",
-  "version": "2.4.1",
-  "content_scripts": [
-    {
-      "matches": ["https://www.youtube.com/*"],
-      "js": ["./dist/content.js"]
-    }
-  ],
-  "permissions": ["tabs", "storage"],
-  "icons": {
-    "16": "./img/autoYTScrollerIcon16.png",
-    "48": "./img/autoYTScrollerIcon48.png",
-    "128": "./img/autoYTScrollerIcon128.png"
-  },
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "{ca667c1e-032b-406f-a512-0b7a220ed28d}"
-    }
-  },
-  "background": {
-    "scripts": ["./dist/background.js"],
-    "persistent": false
-  },
-  "browser_action": {
-    "default_popup": "./popup/popup.html",
-    "default_icon": "./img/autoYTScrollerIcon128.png",
-    "default_title": "Start scrolling!"
-  },
-  "description": "Automatically scrolls to the next Youtube Short when one ends!"
+   "manifest_version": 3,
+   "name": "Auto Youtube Shorts Scroller",
+   "version": "3.1.2",
+   "content_scripts": [
+      {
+         "matches": ["https://www.youtube.com/*"],
+         "js": ["./dist/content.js"]
+      }
+   ],
+   "permissions": ["tabs", "storage"],
+   "icons": {
+      "16": "img/autoYTScrollerIcon16.png",
+      "48": "img/autoYTScrollerIcon48.png",
+      "128": "img/autoYTScrollerIcon128.png"
+   },
+   "background": {
+      "scripts": ["./dist/background.js"],
+      "persistent": false,
+      "type": "module"
+   },
+   "action": {
+      "default_popup": "./popup/popup.html",
+      "default_icon": "./img/autoYTScrollerIcon128.png",
+      "default_title": "Start scrolling!"
+   },
+   "description": "Automatically scrolls to the next Youtube Short when one ends!"
 }

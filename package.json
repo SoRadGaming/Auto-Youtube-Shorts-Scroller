@@ -4,7 +4,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@types/firefox-webext-browser": "^78.0.0",
+    "@types/firefox-webext-browser": "^120.0.0",
     "typescript": "^4.0.3"
   }
 }
