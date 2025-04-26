@@ -1,5 +1,5 @@
 // CONSTANT SELECTORS VARIABLES
-const VIDEOS_LIST_SELECTOR = ".reel-video-in-sequence";
+const VIDEOS_LIST_SELECTOR = ".reel-video-in-sequence-new";
 const NEXT_VIDEO_BUTTON_SELECTOR =
   "#navigation-button-down > ytd-button-renderer > yt-button-shape > button";
 const LIKE_BUTTON_SELECTOR =
