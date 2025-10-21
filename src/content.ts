@@ -367,10 +367,8 @@ async function checkShortValidity(currentShort: HTMLDivElement) {
       ],
    });
 
-   if (!creatorName || !commentCount) return false;
-
    // Ignores all checks if whitelisted creator
-   if (whitelistedCreators.length > 0) {
+   if (!!creatorName && whitelistedCreators.length > 0) {
       const creator = creatorName.innerText.trim().toLowerCase();
       if (
          whitelistedCreators.map((cr) => cr.toLowerCase()).includes(creator) ||
@@ -385,9 +383,9 @@ async function checkShortValidity(currentShort: HTMLDivElement) {
    if (!checkValidVideoLength(videoLength)) return false;
    if (viewCount && !checkValidViewCount(viewCount)) return false;
    if (likeCount && !checkValidLikeCount(likeCount)) return false;
-   if (!checkValidCommentCount(commentCount)) return false;
+   if (!!commentCount && !checkValidCommentCount(commentCount)) return false;
    if (!checkValidTags(tags)) return false;
-   if (!checkValidCreator(creatorName)) return false;
+   if (!!creatorName && !checkValidCreator(creatorName)) return false;
 
    function checkValidVideoLength(videoLength: number) {
       if (filterMinLength !== "none" && videoLength < parseInt(filterMinLength))
