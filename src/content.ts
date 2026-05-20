@@ -287,36 +287,79 @@ function findShortContainer(id = null) {
     }
   }
 
-  // If an id is provided, find the short with that id
+  // If an id is provided, find the short with that id. Return null if not found
+  // so callers can retry / fall back instead of receiving the wrong element.
   if (id != null) {
     if (shorts.length === 0)
-      return document.getElementById(id) as HTMLDivElement; // Short container should always contain id of the short order.
+      return document.getElementById(id.toString()) as HTMLDivElement;
     const short = shorts.find((short) => short.id == id.toString());
-    if (short) return short as HTMLDivElement;
+    return (short || null) as HTMLDivElement;
   }
-  // If no shorts are found, return the first short with the id of 0
+
+  // No id provided: return the currently active short.
   if (shorts.length === 0)
-    return document.getElementById(currentShortId || 0) as HTMLDivElement;
-  // If no id is provided, find the first short with the is-active attribute
-  // If id is provided, return short with id index from shorts list selector
-  return id > 1
-      ? (shorts[id] as HTMLDivElement)
-      : ((shorts.find(
-              (short) =>
-                  // Active short either has the is-active attribute or a hydrated HTML of short.
-                  short.hasAttribute("is-active") ||
-                  short.querySelector(CURRENT_SHORT_SELECTOR) ||
-                  short.querySelector("[is-active]")
-          ) ||
-          shorts[0]) /*If no short found, return first short */ as HTMLDivElement);
+    return document.getElementById((currentShortId ?? 0).toString()) as HTMLDivElement;
+
+  // Primary: explicit is-active attribute (set by YouTube on the visible reel).
+  const activeByAttr = shorts.find(
+      (short) =>
+          short.hasAttribute("is-active") ||
+          short.querySelector("[is-active]")
+  );
+  if (activeByAttr) return activeByAttr as HTMLDivElement;
+
+  // Fallback: the short whose center is closest to the viewport center.
+  // (Previously this used `querySelector(CURRENT_SHORT_SELECTOR)`, which
+  // matched every hydrated short and made shorts[0] win — the root cause of
+  // the "scrolls back to the first short" bug.)
+  const viewportCenter = window.innerHeight / 2;
+  let bestShort: HTMLDivElement = shorts[0];
+  let bestDistance = Infinity;
+  for (const short of shorts) {
+    const rect = short.getBoundingClientRect();
+    if (rect.height === 0) continue;
+    const distance = Math.abs((rect.top + rect.bottom) / 2 - viewportCenter);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestShort = short;
+    }
+  }
+  return bestShort;
 }
 
 async function waitForNextShort(retries = 5, delay = 500) {
   if (!isShortsPage()) return null;
   for (let i = 0; i < retries; i++) {
-    // Find the next short container
-    const nextShort = findShortContainer(currentShortId + scrollDirection);
-    if (nextShort) return nextShort;
+    // Primary strategy: navigate via DOM siblings of the *currently playing*
+    // short. This is robust to YouTube changing the `id` numbering scheme
+    // (which previously caused the script to scroll back to shorts[0]).
+    let currentShortEl: HTMLDivElement | null = null;
+    if (currentVideoElement) {
+      currentShortEl = (currentVideoElement as HTMLElement).closest(
+          VIDEOS_LIST_SELECTORS.join(",")
+      ) as HTMLDivElement;
+    }
+    if (!currentShortEl) {
+      currentShortEl = findShortContainer() as HTMLDivElement;
+    }
+
+    if (currentShortEl) {
+      const allShorts = [
+        ...document.querySelectorAll(VIDEOS_LIST_SELECTORS.join(",")),
+      ] as HTMLDivElement[];
+      const currentIndex = allShorts.indexOf(currentShortEl);
+      if (currentIndex !== -1) {
+        const nextIndex = currentIndex + scrollDirection;
+        if (nextIndex >= 0 && nextIndex < allShorts.length) {
+          return allShorts[nextIndex];
+        }
+      }
+    }
+
+    // Secondary: strict id-based lookup (must actually match the expected id).
+    const expectedId = (currentShortId + scrollDirection).toString();
+    const nextById = findShortContainer(currentShortId + scrollDirection);
+    if (nextById && nextById.id === expectedId) return nextById;
 
     // If none found, little slight screen shake to trigger hydration of new shorts
     window.scrollBy(0, 100);
