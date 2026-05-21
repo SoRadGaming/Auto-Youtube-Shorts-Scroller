@@ -19,10 +19,41 @@ const COMMENTS_COUNT_SELECTORS = [
   "#button-bar > reel-action-bar-view-model > button-view-model:nth-of-type(1) > label > div > span",
 ];
 const DESCRIPTION_TAGS_SELECTOR = "#title > yt-formatted-string > a";
-const AUTHOUR_NAME_SELECTOR =
-    "#metapanel > yt-reel-metapanel-view-model > div:nth-child(1) > yt-reel-channel-bar-view-model > span > a";
-const AUTHOUR_NAME_SELECTOR_2 =
-    "#metapanel > yt-reel-metapanel-view-model > div:nth-child(2) > yt-reel-channel-bar-view-model > span > a";
+
+// Channel/author link selectors tried in priority order. The first ones are
+// the modern, lenient matches that survive YouTube DOM tweaks (any handle
+// link inside the short). The strict legacy paths are kept as a last-resort
+// fallback. Use findCreatorLink() / isCreatorHydrated() below to query them.
+const AUTHOUR_NAME_SELECTORS = [
+  // Modern: channel-bar element with a handle (/@…) or channel (/channel/…) link
+  "yt-reel-channel-bar-view-model a[href^='/@']",
+  "yt-reel-channel-bar-view-model a[href^='/channel/']",
+  "yt-reel-channel-bar-view-model a",
+  // Other common channel-name containers YouTube has used
+  "ytd-channel-name a",
+  "#channel-info a[href^='/@']",
+  // Legacy strict paths from earlier YouTube DOM revisions
+  "#metapanel > yt-reel-metapanel-view-model > div:nth-child(1) > yt-reel-channel-bar-view-model > span > a",
+  "#metapanel > yt-reel-metapanel-view-model > div:nth-child(2) > yt-reel-channel-bar-view-model > span > a",
+  // Last resort: ANY channel-handle link inside the short container
+  "a[href^='/@']",
+];
+
+// Kept for legacy callers / debug logging.
+const AUTHOUR_NAME_SELECTOR = AUTHOUR_NAME_SELECTORS[0];
+const AUTHOUR_NAME_SELECTOR_2 = AUTHOUR_NAME_SELECTORS[1];
+
+function findCreatorLink(scope: Element | Document): HTMLAnchorElement | null {
+  for (const sel of AUTHOUR_NAME_SELECTORS) {
+    const el = scope.querySelector(sel) as HTMLAnchorElement | null;
+    if (el && el.innerText && el.innerText.trim().length > 0) return el;
+  }
+  return null;
+}
+
+function isCreatorHydrated(scope: Element | Document): boolean {
+  return findCreatorLink(scope) != null;
+}
 
 const NEXT_BUTTON_SELECTOR =
     "#navigation-button-down > ytd-button-renderer > yt-button-shape > button";
@@ -154,24 +185,30 @@ async function checkForNewShort() {
     currentVideoElement.addEventListener("ended", shortEnded);
     currentVideoElement._hasEndEvent = true;
 
-    // Check if the current short has metadata
-    const isMetaDataHydrated = (selector: string) => {
-      return currentShort.querySelector(selector) != null;
-    };
-
-    if (!isMetaDataHydrated(AUTHOUR_NAME_SELECTOR)) {
+    // Check if the current short has metadata (channel/author link).
+    // Uses the flexible selector list so transient YouTube DOM changes don't
+    // break detection.
+    if (!isCreatorHydrated(currentShort)) {
       let l = 0;
       // If the creator name is not found, wait for it to load (A long with other data)
-      while (!isMetaDataHydrated(AUTHOUR_NAME_SELECTOR)) {
-        if (isMetaDataHydrated(AUTHOUR_NAME_SELECTOR_2)) break;
+      while (!isCreatorHydrated(currentShort)) {
         if (l > MAX_RETRIES) {
-          // If after time not found, scroll to next short
-          let prevShortId = currentShortId;
-          currentShortId = null;
-          console.log(
-              "[Auto Youtube Shorts Scroller] Metadata not hydrated, scrolling to next short..."
+          // Metadata never appeared (the AUTHOUR_NAME_SELECTOR CSS path is
+          // likely stale for the current YouTube DOM). Previously this set
+          // currentShortId = null and called scrollToNextShort(), which
+          // raced against setInterval(checkForNewShort, 500): if the next
+          // tick re-set currentShortId to the same id *before* the scroll
+          // timeout's `prevShortId != currentShortId` guard fired, the
+          // page would actually scroll away mid-video. Just continue here
+          // instead — author/tag filters that depend on metadata will
+          // simply no-op (their selectors return null), and the rest of
+          // the validity checks (length, views, likes, comments) still
+          // work normally.
+          console.warn(
+              "[Auto Youtube Shorts Scroller] metadata not hydrated within timeout — continuing without author/tag filters",
+              { shortId: currentShortId }
           );
-          return scrollToNextShort(prevShortId, false);
+          break;
         }
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
         l++;
@@ -390,12 +427,7 @@ async function checkShortValidity(currentShort: HTMLDivElement) {
   const tags = document.querySelectorAll(
       DESCRIPTION_TAGS_SELECTOR
   ) as NodeListOf<HTMLAnchorElement>;
-  const creatorName =
-      currentShort &&
-      ((currentShort.querySelector(AUTHOUR_NAME_SELECTOR) ||
-          currentShort.querySelector(
-              AUTHOUR_NAME_SELECTOR_2
-          )) as HTMLAnchorElement);
+  const creatorName = currentShort ? findCreatorLink(currentShort) : null;
 
   console.log("[Auto Youtube Shorts Scroller]", {
     filters: [
