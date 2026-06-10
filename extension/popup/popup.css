@@ -34,22 +34,24 @@
 }
 
 body {
-    font-family: var(--font-family);
-    background: linear-gradient(
-            135deg,
-            var(--bg-gradient-start),
-            var(--bg-gradient-mid),
-            var(--bg-gradient-end)
-    );
-    background-size: 200% 200%;
-    animation: gradientShift 15s ease infinite;
+  font-family: var(--font-family);
+  /* Animated Gradient Background */
+  background: linear-gradient(
+    135deg,
+    var(--bg-gradient-start),
+    var(--bg-gradient-mid),
+    var(--bg-gradient-end)
+  );
+  background-size: 200% 200%; /* Needed for animation */
+  animation: gradientShift 15s ease infinite; /* Animation */
 
-    color: var(--text-primary);
-    min-width: 350px;
-    max-width: 450px;
-    padding: 0.8rem;
-    overflow: auto; /* Allow scrolling when content overflows */
-    position: relative;
+  color: var(--text-primary);
+  min-width: 350px;
+  max-width: 450px;
+  /* Further reduced body padding */
+  padding: 0.8rem;
+  overflow: hidden; /* Explicitly hide overflow */
+  position: relative; /* For potential pseudo-elements */
 }
 
 /* Background Animation */
@@ -468,4 +470,80 @@ input:not(:checked) + .slider:before {
     /* Further reduced error size and margin */
     font-size: 0.75rem;
     margin-top: 0.2rem;
-} 
+}
+
+/* CSS - append to `extension/popup/popup.css` */
+
+/* Prevent page-level horizontal scrolling */
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* Ensure main content uses available width and doesn't create horizontal scroll */
+.main-content {
+    width: 100%;
+    min-width: 0; /* allow children to shrink in Firefox/Chromium */
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+/* Sidebar: allow tooltip to render outside without forcing a scrollbar */
+.navigation-sidebar {
+    flex: 0 0 36px; /* fixed width */
+    min-width: 0;
+    overflow-x: visible; /* let tooltips render outside */
+}
+
+/* Keep tooltips outside the main flow and avoid pushing layout */
+.nav-item .tooltip {
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 16rem;
+    word-break: normal;
+}
+
+/* Panels area: full width, no horizontal scroll, allow vertical scrolling */
+.content-panels {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Each panel fills the panels container and prevents overflow */
+.content-panel {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+/* Prevent long form controls or inline content from expanding width */
+input, select, textarea, code, .filter-group, .form-group {
+    max-width: 100%;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Make header title truncate instead of widening popup */
+.header-title, .header-controls {
+    min-width: 0;
+}
+
+.header-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 10px; /* Add some spacing from controls */
+}
+
+/* Extra defensive rule to hide any accidental horizontal scrollbar in nested containers */
+html, body, .main-content, .content-panels {
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: auto; /* Firefox */
+}
