@@ -198,6 +198,16 @@
             <p class="description">Comma-separated list. Shorts from these creators bypass all filters.</p>
           </div>
           <div class="form-group">
+               <label class="toggle-switch-label" for="whitelistSubscribedInput">
+                    <span class="toggle-switch-text">Whitelist Subscribed Creators</span>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="whitelistSubscribedInput"/>
+                        <span class="slider"></span>
+                    </div>
+                </label>
+                <p class="description">Subscribed creators bypass all filters automatically.</p>
+           </div>
+          <div class="form-group">
             <label for="filterTags">Blocked Tags</label>
             <textarea id="filterTags" placeholder="e.g., #topic1, #badtag"></textarea>
             <p class="description">Comma-separated list of tags (including #) to block.</p>

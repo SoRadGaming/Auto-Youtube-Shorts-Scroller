@@ -54,6 +54,9 @@ const scrollOnCommentsInput = document.querySelector(
 const scrollOnNoTagsInput = document.querySelector(
    "#scrollOnNoTagsInput"
 ) as HTMLInputElement;
+const whitelistSubscribedInput = document.querySelector(
+   "#whitelistSubscribedInput"
+) as HTMLInputElement;
 const additionalScrollDelayInput = document.querySelector(
    "#additionalScrollDelayInput"
 ) as HTMLInputElement;
@@ -215,6 +218,10 @@ function setupEventListeners() {
       "change",
       handleCheckboxChange("scrollOnNoTags")
    );
+   whitelistSubscribedInput.addEventListener(
+      "change",
+      handleCheckboxChange("whitelistSubscribed")
+   );
 
    // Listen for storage changes to update UI (especially the master toggle)
    browser.storage.onChanged.addListener((changes) => {
@@ -330,6 +337,7 @@ function getAllSettingsForPopup() {
       "scrollOnComments",
       "scrollOnNoTags",
       "additionalScrollDelay",
+      "whitelistSubscribed",
    ];
 
    browser.storage.local.get(keysToGet).then((result) => {
@@ -395,6 +403,7 @@ function getAllSettingsForPopup() {
       ).toString();
       scrollOnCommentsInput.checked = result.scrollOnComments ?? false; // Default to false
       scrollOnNoTagsInput.checked = result.scrollOnNoTags ?? false; // Default to false
+      whitelistSubscribedInput.checked = result.whitelistSubscribed ?? false;
 
       // Initialize default values in storage if they were undefined
       const defaultsToSet = {} as {
@@ -417,6 +426,7 @@ function getAllSettingsForPopup() {
          scrollOnComments: boolean;
          scrollOnNoTags: boolean;
          additionalScrollDelay: number;
+         whitelistSubscribed: boolean;
       };
       if (result.applicationIsOn === undefined)
          defaultsToSet.applicationIsOn = true;
@@ -456,6 +466,8 @@ function getAllSettingsForPopup() {
          defaultsToSet.scrollOnNoTags = false;
       if (result.additionalScrollDelay === undefined)
          defaultsToSet.additionalScrollDelay = 0;
+      if (result.whitelistSubscribed === undefined)
+         defaultsToSet.whitelistSubscribed = false;
 
       if (Object.keys(defaultsToSet).length > 0) {
          browser.storage.local.set(defaultsToSet);

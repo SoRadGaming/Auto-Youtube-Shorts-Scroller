@@ -23,6 +23,8 @@ const AUTHOUR_NAME_SELECTOR =
     "#metapanel > yt-reel-metapanel-view-model > div:nth-child(1) > yt-reel-channel-bar-view-model > span > a";
 const AUTHOUR_NAME_SELECTOR_2 =
     "#metapanel > yt-reel-metapanel-view-model > div:nth-child(2) > yt-reel-channel-bar-view-model > span > a";
+const SUBSCRIBE_BUTTON_CONTAINER_SELECTOR =
+    ".ytReelChannelBarViewModelReelSubscribeButton";
 
 const NEXT_BUTTON_SELECTOR =
     "#navigation-button-down > ytd-button-renderer > yt-button-shape > button";
@@ -50,6 +52,7 @@ let blockedCreators = [];
 let whitelistedCreators = [];
 let blockedTags = [];
 let scrollOnNoTags = false;
+let whitelistSubscribed = false;
 let additionalScrollDelay = 0;
 
 // ------------------------------
@@ -331,6 +334,15 @@ async function waitForNextShort(retries = 5, delay = 500) {
   return null;
 }
 
+function isSubscribed(currentShort: HTMLDivElement): boolean {
+  const container = currentShort.querySelector<HTMLElement>(SUBSCRIBE_BUTTON_CONTAINER_SELECTOR);
+  if (!container) return false;
+  // Empty container = YouTube removed the subscribe button = already subscribed
+  if (!container.firstElementChild) return true;
+  const btn = container.querySelector<HTMLElement>("button");
+  return btn?.getAttribute("aria-label")?.toLowerCase().includes("subscribed") ?? false;
+}
+
 async function checkShortValidity(currentShort: HTMLDivElement) {
   const videoLength = currentVideoElement?.duration;
   const viewCount = document.querySelector(
@@ -369,6 +381,7 @@ async function checkShortValidity(currentShort: HTMLDivElement) {
       { blockedTags },
       { blockedCreators },
       { whitelistedCreators },
+      { isSubscribed: isSubscribed(currentShort), whitelistSubscribed },
     ],
   });
 
@@ -384,6 +397,9 @@ async function checkShortValidity(currentShort: HTMLDivElement) {
       return true;
     }
   }
+
+  // Ignores all checks if subscribed to creator
+  if (whitelistSubscribed && isSubscribed(currentShort)) return true;
 
   if (!checkValidVideoLength(videoLength)) return false;
   if (viewCount && !checkValidViewCount(viewCount)) return false;
@@ -520,6 +536,7 @@ async function checkShortValidity(currentShort: HTMLDivElement) {
           "scrollOnNoTags",
           "whitelistedAuthors",
           "additionalScrollDelay",
+          "whitelistSubscribed",
         ]
     ).then((result) => {
           console.log("[Auto Youtube Shorts Scroller]", {
@@ -561,6 +578,8 @@ async function checkShortValidity(currentShort: HTMLDivElement) {
           if (result["scrollOnNoTags"]) scrollOnNoTags = result["scrollOnNoTags"];
           if (result["additionalScrollDelay"])
             additionalScrollDelay = result["additionalScrollDelay"];
+          if (result["whitelistSubscribed"] !== undefined)
+            whitelistSubscribed = result["whitelistSubscribed"];
 
           shortCutListener();
         }
@@ -638,6 +657,10 @@ async function checkShortValidity(currentShort: HTMLDivElement) {
       let newAdditionalScrollDelay = result["additionalScrollDelay"]?.newValue;
       if (newAdditionalScrollDelay !== undefined) {
         additionalScrollDelay = newAdditionalScrollDelay;
+      }
+      let newWhitelistSubscribed = result["whitelistSubscribed"]?.newValue;
+      if (newWhitelistSubscribed !== undefined) {
+        whitelistSubscribed = newWhitelistSubscribed;
       }
       if (!(await checkShortValidity(findShortContainer(currentShortId)))) {
         await scrollToNextShort(currentShortId);
