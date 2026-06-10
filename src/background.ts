@@ -17,6 +17,7 @@ const allStorageKeys = [
   "filteredTags",
   "whitelistedAuthors",
   "scrollOnNoTags",
+  "whitelistSubscribed",
 ];
 
 browser.runtime.onInstalled.addListener((details) => {
@@ -79,6 +80,9 @@ browser.runtime.onInstalled.addListener((details) => {
     }
     if (resultSync.scrollOnNoTags == undefined) {
       browser.storage.local.set({ scrollOnNoTags: false });
+    }
+    if (resultSync.whitelistSubscribed == undefined) {
+      browser.storage.local.set({ whitelistSubscribed: false });
     }
   });
 });
